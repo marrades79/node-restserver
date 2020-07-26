@@ -4,7 +4,12 @@ const Usuario = require('../models/usuario');
 const bcrypt = require('bcrypt');
 const _ = require('underscore');
 
-app.get('/usuario', function(req, res) {
+// funcion verificar token
+const { verificacionToken, verificacionRole } = require('../midelwares/autenticaton');
+
+// el parametro del medio es una funcion para verficar el token
+
+app.get('/usuario', verificacionToken, function(req, res) {
 
     let desde = req.query.desde || 0;
     //transformar numero
@@ -40,7 +45,7 @@ app.get('/usuario', function(req, res) {
         });
 });
 
-app.post('/usuario', function(req, res) {
+app.post('/usuario', [verificacionToken, verificacionRole], (req, res) => {
     //body parser
     let body = req.body;
 
@@ -62,7 +67,8 @@ app.post('/usuario', function(req, res) {
         if (err) {
             return res.status(400).json({
                 ok: 'False',
-                mensaje: 'No se guardo el usuario en la BDA'
+                mensaje: 'No se guardo el usuario en la BDA',
+                err: err
             });
         }
         //para no retornar el valor del password
@@ -77,7 +83,7 @@ app.post('/usuario', function(req, res) {
 
 });
 
-app.put('/usuario/:id', function(req, res) {
+app.put('/usuario/:id', [verificacionToken, verificacionRole], function(req, res) {
     let id = req.params.id;
     //obtener los datos de le peticion 
 
@@ -102,13 +108,15 @@ app.put('/usuario/:id', function(req, res) {
     });
 });
 
-app.delete('/usuario/:id', function(req, res) {
+app.delete('/usuario/:id', [verificacionToken, verificacionRole], function(req, res) {
     let id = req.params.id;
 
     let cambiaEstado = {
         estado: false
     };
-    // Usuario.findByIdAndRemove(id, (err, usuarioBorrado) => {
+
+
+    //Usuario.findByIdAndRemove(id, (err, usuarioBorrado) => {
     Usuario.findByIdAndUpdate(id, cambiaEstado, { new: true, runValidators: true }, (err, usuarioBorrado) => {
 
         if (err) {
@@ -121,7 +129,8 @@ app.delete('/usuario/:id', function(req, res) {
         if (!usuarioBorrado) {
             return res.status(400).json({
                 ok: 'False',
-                mensaje: 'No se ha borrado el usuario'
+                mensaje: 'No se ha borrado el usuario',
+                err: err
             });
         }
 
@@ -129,8 +138,6 @@ app.delete('/usuario/:id', function(req, res) {
             ok: true,
             usuario: usuarioBorrado
         });
-
-
     });
 
 });
