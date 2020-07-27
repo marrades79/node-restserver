@@ -149,7 +149,7 @@ app.post('/google', async(req, res) => {
             //usuario no existe en la BDA
 
             let usuario = new Usuario();
-            usuario.nombre = googleUser.name;
+            usuario.nombre = googleUser.nombre;
             usuario.email = googleUser.email;
             usuario.img = googleUser.img;
             usuario.google = true;
